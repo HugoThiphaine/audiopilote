@@ -2,8 +2,9 @@
 .build/
 .swiftpm/
 
-# Bundle assemblé (régénéré par build.sh, distribué via les Releases)
+# Bundle assemblé et son archive (régénérés, distribués via les Releases)
 /AudioPilote.app
+/AudioPilote.zip
 
 # macOS
 .DS_Store
