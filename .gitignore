@@ -1,0 +1,9 @@
+# Artefacts de build SwiftPM
+.build/
+.swiftpm/
+
+# Bundle assemblé (régénéré par build.sh, distribué via les Releases)
+/AudioPilote.app
+
+# macOS
+.DS_Store
