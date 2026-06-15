@@ -14,11 +14,22 @@ final class AppState: ObservableObject {
     @Published var autoSwitchInput: Bool
     @Published var autoSwitchOutput: Bool
     @Published var loginEnabled: Bool
-    @Published var selectedMode: AudioMode = .output
+    @Published var selectedMode: AudioMode = .output {
+        didSet {
+            refreshVolume()
+            updateMeter()
+        }
+    }
+    @Published var volume: Float = 0
+    @Published var volumeSupported: Bool = false
+    @Published var inputLevel: Float = 0
+    @Published var meteredUID: String?
 
     private let manager = AudioDeviceManager()
     private let store = PreferencesStore()
     private let loginItem = LoginItemManager()
+    private let meter = AudioLevelMeter()
+    private var popoverVisible = false
 
     init() {
         autoSwitchInput = store.autoSwitchEnabled(for: .input)
@@ -44,8 +55,12 @@ final class AppState: ObservableObject {
 
             var order = store.priority(for: mode)
             for device in live where !order.contains(device.uid) { order.append(device.uid) }
-            // On garde un UID s'il est live OU si on connaît encore son nom.
-            order = order.filter { liveByUID[$0] != nil || store.rememberedName(for: $0) != nil }
+            // En ligne : on garde. Hors-ligne : seulement si on a un nom propre
+            // (ni vide, ni l'UID brut, ni un agrégat), pour éviter le bruit.
+            order = order.filter { uid in
+                if liveByUID[uid] != nil { return true }
+                return AppState.isPresentableOffline(store.rememberedName(for: uid), uid: uid)
+            }
             store.savePriority(order, for: mode)
 
             let defaultID = manager.defaultDeviceID(for: mode)
@@ -61,11 +76,24 @@ final class AppState: ObservableObject {
             }
             if mode == .input { inputRows = rows } else { outputRows = rows }
         }
+        if let uid = meteredUID, inputRows.first(where: { $0.uid == uid })?.isOnline != true {
+            meteredUID = nil
+        }
+        refreshVolume()
+    }
+
+    /// Un périphérique hors-ligne est présentable s'il a un vrai nom mémorisé
+    /// (ni vide, ni l'UID brut, ni un agrégat système temporaire).
+    private static func isPresentableOffline(_ name: String?, uid: String) -> Bool {
+        guard let name, !name.isEmpty, name != uid else { return false }
+        if name.hasPrefix("CADefaultDeviceAggregate") { return false }
+        return true
     }
 
     private func handleChange() {
         refresh()
         applyAutoSwitch()
+        updateMeter()
     }
 
     // MARK: - Actions UI
@@ -122,6 +150,54 @@ final class AppState: ObservableObject {
 
     func refreshLoginStatus() {
         loginEnabled = loginItem.isEnabled
+    }
+
+    // MARK: - Volume
+
+    private func refreshVolume() {
+        let device = manager.defaultDeviceID(for: selectedMode)
+        if let level = manager.volume(of: device, mode: selectedMode) {
+            volume = level
+            volumeSupported = true
+        } else {
+            volume = 0
+            volumeSupported = false
+        }
+    }
+
+    func setVolume(_ value: Float) {
+        let device = manager.defaultDeviceID(for: selectedMode)
+        if manager.setVolume(value, of: device, mode: selectedMode) {
+            volume = value
+        }
+    }
+
+    // MARK: - VU-mètre d'entrée
+
+    func setPopoverVisible(_ visible: Bool) {
+        popoverVisible = visible
+        if !visible { meteredUID = nil }
+        updateMeter()
+    }
+
+    /// Démarre/arrête le test de niveau d'une entrée (déclenché par le bouton).
+    func toggleMeter(_ row: DeviceRow) {
+        meteredUID = (meteredUID == row.uid) ? nil : row.uid
+        updateMeter()
+    }
+
+    private func updateMeter() {
+        meter.stop()
+        inputLevel = 0
+        guard popoverVisible,
+              selectedMode == .input,
+              let uid = meteredUID,
+              let row = inputRows.first(where: { $0.uid == uid }),
+              row.isOnline,
+              let deviceID = row.objectID else {
+            return
+        }
+        meter.start(deviceID: deviceID) { [weak self] level in self?.inputLevel = level }
     }
 
     // MARK: - Auto-switch (idempotent)

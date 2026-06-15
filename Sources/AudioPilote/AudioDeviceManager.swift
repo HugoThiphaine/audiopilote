@@ -78,8 +78,22 @@ final class AudioDeviceManager {
         allDeviceIDs().compactMap { id -> AudioDevice? in
             guard channelCount(id, scope: mode.scope) > 0 else { return nil }
             guard let uid = uid(of: id) else { return nil }
-            return AudioDevice(uid: uid, name: name(of: id) ?? uid, objectID: id)
+            // Sans vrai nom (nom vide ou == UID), ou agrégat système temporaire
+            // (CADefaultDeviceAggregate...) = bruit, on ignore.
+            guard let name = name(of: id), !name.isEmpty, name != uid else { return nil }
+            if transportType(of: id) == kAudioDeviceTransportTypeAggregate { return nil }
+            return AudioDevice(uid: uid, name: name, objectID: id)
         }
+    }
+
+    private func transportType(of device: AudioObjectID) -> UInt32? {
+        var addr = address(kAudioDevicePropertyTransportType)
+        var value = UInt32(0)
+        var size = UInt32(MemoryLayout<UInt32>.size)
+        guard AudioObjectGetPropertyData(device, &addr, 0, nil, &size, &value) == noErr else {
+            return nil
+        }
+        return value
     }
 
     // MARK: - Périphérique par défaut
@@ -98,6 +112,56 @@ final class AudioDeviceManager {
         var value = device
         let size = UInt32(MemoryLayout<AudioObjectID>.size)
         return AudioObjectSetPropertyData(systemObject, &addr, 0, nil, size, &value) == noErr
+    }
+
+    // MARK: - Volume
+
+    /// Volume 0..1 du périphérique pour ce mode, ou nil si non exposé.
+    func volume(of device: AudioObjectID, mode: AudioMode) -> Float? {
+        guard device != 0 else { return nil }
+        let elements: [AudioObjectPropertyElement] = [kAudioObjectPropertyElementMain, 1]
+        for element in elements {
+            var addr = AudioObjectPropertyAddress(
+                mSelector: kAudioDevicePropertyVolumeScalar,
+                mScope: mode.scope,
+                mElement: element)
+            if AudioObjectHasProperty(device, &addr) {
+                var value = Float32(0)
+                var size = UInt32(MemoryLayout<Float32>.size)
+                if AudioObjectGetPropertyData(device, &addr, 0, nil, &size, &value) == noErr {
+                    return value
+                }
+            }
+        }
+        return nil
+    }
+
+    /// Règle le volume. Essaie l'élément principal, sinon les canaux 1 et 2.
+    /// Retourne false si le périphérique n'expose aucun contrôle réglable.
+    @discardableResult
+    func setVolume(_ volume: Float, of device: AudioObjectID, mode: AudioMode) -> Bool {
+        guard device != 0 else { return false }
+        let clamped = max(0, min(1, volume))
+        let elements: [AudioObjectPropertyElement] = [kAudioObjectPropertyElementMain, 1, 2]
+        var didSet = false
+        for element in elements {
+            var addr = AudioObjectPropertyAddress(
+                mSelector: kAudioDevicePropertyVolumeScalar,
+                mScope: mode.scope,
+                mElement: element)
+            var settable: DarwinBoolean = false
+            if AudioObjectHasProperty(device, &addr),
+               AudioObjectIsPropertySettable(device, &addr, &settable) == noErr,
+               settable.boolValue {
+                var value = Float32(clamped)
+                let size = UInt32(MemoryLayout<Float32>.size)
+                if AudioObjectSetPropertyData(device, &addr, 0, nil, size, &value) == noErr {
+                    didSet = true
+                    if element == kAudioObjectPropertyElementMain { break }
+                }
+            }
+        }
+        return didSet
     }
 
     // MARK: - Écoute des changements

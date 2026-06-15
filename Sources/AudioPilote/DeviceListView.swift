@@ -10,12 +10,16 @@ struct DeviceListView: View {
     var body: some View {
         List {
             ForEach(state.rows(for: mode)) { row in
-                DeviceRowView(row: row)
+                DeviceRowView(row: row,
+                              isMetered: state.meteredUID == row.uid,
+                              level: state.inputLevel,
+                              onToggleMeter: (mode == .input && row.isOnline)
+                                  ? { state.toggleMeter(row) } : nil)
                     .contentShape(Rectangle())
                     .onTapGesture {
                         if row.isOnline { state.makeDefault(row) }
                     }
-                    .listRowInsets(EdgeInsets(top: 0, leading: 10, bottom: 0, trailing: 10))
+                    .listRowInsets(EdgeInsets(top: 1, leading: 6, bottom: 1, trailing: 6))
             }
             .onMove { indices, newOffset in
                 state.reorder(mode: mode, from: indices, to: newOffset)

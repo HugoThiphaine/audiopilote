@@ -9,10 +9,9 @@ struct RootView: View {
         VStack(spacing: 0) {
             header
             modePicker
-            Divider()
+            controls
             DeviceListView(mode: state.selectedMode)
                 .frame(minHeight: 180, maxHeight: 360)
-            Divider()
             footer
         }
         .frame(width: 320)
@@ -23,7 +22,21 @@ struct RootView: View {
             Image(systemName: "slider.horizontal.3")
                 .foregroundColor(.accentColor)
             Text("AudioPilote").font(.headline)
+            if isDevBuild {
+                Text("dev")
+                    .font(.system(size: 9, weight: .bold))
+                    .padding(.horizontal, 5)
+                    .padding(.vertical, 1)
+                    .background(Capsule().fill(Color.orange.opacity(0.25)))
+                    .foregroundColor(.orange)
+            }
             Spacer()
+            Link(destination: URL(string: "https://hugo-thiphaine.fr")!) {
+                Image(systemName: "questionmark.circle")
+            }
+            .buttonStyle(.plain)
+            .foregroundColor(.secondary)
+            .help("Aide et contact : hugo-thiphaine.fr")
             Button {
                 NSApp.terminate(nil)
             } label: {
@@ -47,6 +60,31 @@ struct RootView: View {
         .labelsHidden()
         .padding(.horizontal, 14)
         .padding(.bottom, 10)
+    }
+
+    private var controls: some View {
+        HStack(spacing: 8) {
+            Image(systemName: state.selectedMode == .input ? "mic.fill" : "speaker.wave.2.fill")
+                .foregroundColor(.secondary)
+                .frame(width: 16)
+            Slider(value: Binding(get: { state.volume }, set: { state.setVolume($0) }), in: 0...1)
+                .disabled(!state.volumeSupported)
+                .help(state.volumeSupported ? "Volume" : "Volume non réglable pour ce périphérique")
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+        .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .strokeBorder(.white.opacity(0.08), lineWidth: 1)
+        )
+        .padding(.horizontal, 12)
+        .padding(.top, 2)
+        .padding(.bottom, 8)
+    }
+
+    private var isDevBuild: Bool {
+        !Bundle.main.bundlePath.contains("/Applications/")
     }
 
     private var autoSwitchLabel: String {
@@ -80,7 +118,14 @@ struct RootView: View {
         }
         .toggleStyle(.switch)
         .controlSize(.small)
-        .padding(.horizontal, 14)
+        .padding(.horizontal, 12)
         .padding(.vertical, 10)
+        .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .strokeBorder(.white.opacity(0.08), lineWidth: 1)
+        )
+        .padding(.horizontal, 12)
+        .padding(.bottom, 12)
     }
 }

@@ -22,12 +22,20 @@ suivant quand l'actif se déconnecte.
 
 ## Installation
 
-Télécharge `AudioPilote.zip` depuis la dernière [Release](../../releases),
-décompresse, place `AudioPilote.app` dans ton dossier Applications.
+**[Télécharger la dernière version (AudioPilote.zip)](https://github.com/HugoThiphaine/audiopilote/releases/latest/download/AudioPilote.zip)**
 
-L'app n'est pas notarisée par Apple. **Au premier lancement** : clic droit sur
-`AudioPilote.app` puis `Ouvrir`, et confirme dans la boîte de dialogue. macOS ne
-le redemandera plus ensuite.
+Attention : n'utilise pas le bouton vert « Code › Download ZIP » en haut de la
+page. Celui-là télécharge le code source (Package.swift, build.sh...), pas
+l'application. Pour l'app prête à l'emploi, passe par le lien ci-dessus ou par
+l'onglet [Releases](../../releases).
+
+Ensuite :
+
+1. Décompresse `AudioPilote.zip` (double-clic).
+2. Glisse `AudioPilote.app` dans ton dossier `Applications`.
+3. **Premier lancement** : clic droit sur `AudioPilote.app` puis `Ouvrir`, et
+   confirme (l'app n'est pas notarisée par Apple, c'est normal). macOS ne le
+   redemandera plus.
 
 L'icône apparaît dans la barre de menus (en haut à droite). Pas d'icône dans le
 Dock, c'est voulu.
@@ -63,6 +71,11 @@ Inspiré par [SoundAnchor](https://apps.kopiro.me/soundanchor) de Flavio De
 Stefano. AudioPilote en est une réécriture indépendante, à partir des seules API
 publiques d'Apple (CoreAudio, SwiftUI, ServiceManagement). Aucun code ni asset
 de SoundAnchor n'a été repris.
+
+## Auteur
+
+Hugo Thiphaine, web designer et consultant SEO. Aide et contact :
+[hugo-thiphaine.fr](https://hugo-thiphaine.fr).
 
 ## Licence
 

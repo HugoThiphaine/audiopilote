@@ -8,8 +8,8 @@ DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 APP="${1:-$DIR/AudioPilote.app}"
 NAME="AudioPilote"
 BUNDLE_ID="fr.thiphaine.audiopilote"
-VERSION="1.0"
-BUILD="1"
+VERSION="0.2.0"
+BUILD="2"
 
 echo "==> swift build -c release"
 swift build --package-path "$DIR" -c release
@@ -40,6 +40,7 @@ cat > "$APP/Contents/Info.plist" <<PLIST
     <key>CFBundleInfoDictionaryVersion</key> <string>6.0</string>
     <key>LSMinimumSystemVersion</key>  <string>13.0</string>
     <key>LSUIElement</key>             <true/>
+    <key>NSMicrophoneUsageDescription</key> <string>AudioPilote affiche le niveau d'entrée en temps réel.</string>
     <key>NSPrincipalClass</key>        <string>NSApplication</string>
     <key>NSHighResolutionCapable</key> <true/>
 </dict>
