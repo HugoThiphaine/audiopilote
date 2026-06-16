@@ -4,6 +4,16 @@ All notable changes to AudioPilote.
 Format based on [Keep a Changelog](https://keepachangelog.com/),
 versioning follows [SemVer](https://semver.org/).
 
+## [0.2.3] - 2026-06-16
+
+### Added
+
+- "Move to top" button on each device row, shown on hover
+
+### Fixed
+
+- Reordering: the row tap that set the default device was blocking drag, so reordering did nothing. It now works. Set a device as default by clicking its circle instead.
+
 ## [0.2.2] - 2026-06-16
 
 ### Added

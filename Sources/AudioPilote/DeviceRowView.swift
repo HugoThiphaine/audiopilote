@@ -49,6 +49,9 @@ struct DeviceRowView: View {
                 }
                 .buttonStyle(.plain)
                 .help(isMetered ? L("meter.stop") : L("meter.start"))
+                .opacity((isHovering || isMetered) ? 1 : 0)
+                .allowsHitTesting(isHovering || isMetered)
+                .animation(.easeInOut(duration: 0.12), value: isHovering)
             }
 
             Button(action: { onMoveToTop?() }) {
