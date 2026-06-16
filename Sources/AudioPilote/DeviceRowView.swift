@@ -11,6 +11,8 @@ struct DeviceRowView: View {
     var onActivate: (() -> Void)? = nil
     var onMoveToTop: (() -> Void)? = nil
 
+    @State private var isHovering = false
+
     private var showMeterButton: Bool {
         row.mode == .input && row.isOnline && onToggleMeter != nil
     }
@@ -56,6 +58,9 @@ struct DeviceRowView: View {
             }
             .buttonStyle(.plain)
             .help(L("row.movetotop"))
+            .opacity(isHovering ? 1 : 0)
+            .allowsHitTesting(isHovering)
+            .animation(.easeInOut(duration: 0.12), value: isHovering)
         }
         .padding(.vertical, 5)
         .padding(.horizontal, 8)
@@ -64,6 +69,8 @@ struct DeviceRowView: View {
                 .fill(row.isDefault ? Color.accentColor.opacity(0.14) : Color.clear)
         )
         .opacity(row.isOnline ? 1 : 0.45)
+        .contentShape(Rectangle())
+        .onHover { isHovering = $0 }
     }
 
     private var pastille: some View {
