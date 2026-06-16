@@ -1,49 +1,50 @@
 # AudioPilote
 
-Petit utilitaire macOS de barre de menus qui gère l'ordre de priorité de tes
-périphériques audio (entrée et sortie) et bascule automatiquement vers le
-périphérique disponible le plus prioritaire.
+Read this in: English | [Français](README.fr.md)
 
-Tu classes tes périphériques par glisser-déposer. AudioPilote force le premier
-disponible de la liste comme périphérique par défaut, et redescend tout seul au
-suivant quand l'actif se déconnecte.
+A small macOS menu-bar utility that manages the priority order of your audio
+devices (input and output) and automatically switches to the most preferred
+device that is available.
 
-## Fonctionnalités
+You rank your devices by drag and drop. AudioPilote forces the first available
+device in the list as the system default, and falls back to the next one when
+the active device disconnects.
 
-- Onglets Entrée et Sortie
-- Liste réordonnable par glisser-déposer : c'est ton ordre de priorité
-- Bascule automatique vers le périphérique disponible le plus prioritaire
-- Auto-switch activable indépendamment pour l'entrée et pour la sortie
-- Fallback en cascade : quand l'actif se déconnecte, le suivant dispo prend le relais
-- Bascule manuelle au clic (avec l'auto-switch actif, le clic promeut le périphérique en tête)
-- Périphériques hors-ligne mémorisés et affichés grisés à leur rang
-- Lancement au démarrage (optionnel)
-- 100 % local : aucune télémétrie, aucun compte, gratuit
+## Features
+
+- Input and Output tabs
+- Drag-to-reorder list: that is your priority order
+- Automatic switching to the highest-priority available device
+- Auto-switch can be enabled independently for input and output
+- Cascading fallback: when the active device disconnects, the next available one takes over
+- Manual switch on click (with auto-switch on, clicking promotes the device to the top)
+- Volume slider (output volume, input gain)
+- Real-time input level meter, triggered per input by a button
+- Offline devices are remembered and shown greyed out
+- Launch at login (optional)
+- 100% local: no telemetry, no account, free
 
 ## Installation
 
-**[Télécharger la dernière version (AudioPilote.zip)](https://github.com/HugoThiphaine/audiopilote/releases/latest/download/AudioPilote.zip)**
+**[Download the latest version (AudioPilote.zip)](https://github.com/HugoThiphaine/audiopilote/releases/latest/download/AudioPilote.zip)**
 
-Attention : n'utilise pas le bouton vert « Code › Download ZIP » en haut de la
-page. Celui-là télécharge le code source (Package.swift, build.sh...), pas
-l'application. Pour l'app prête à l'emploi, passe par le lien ci-dessus ou par
-l'onglet [Releases](../../releases).
+Do not use the green "Code > Download ZIP" button at the top of the page. That
+downloads the source code (Package.swift, build.sh...), not the app. For the
+ready-to-use app, use the link above or the [Releases](../../releases) tab.
 
-Ensuite :
+Then:
 
-1. Décompresse `AudioPilote.zip` (double-clic).
-2. Glisse `AudioPilote.app` dans ton dossier `Applications`.
-3. **Premier lancement** : clic droit sur `AudioPilote.app` puis `Ouvrir`, et
-   confirme (l'app n'est pas notarisée par Apple, c'est normal). macOS ne le
-   redemandera plus.
+1. Unzip `AudioPilote.zip` (double-click).
+2. Drag `AudioPilote.app` into your `Applications` folder.
+3. **First launch**: right-click `AudioPilote.app` then `Open`, and confirm (the
+   app is not notarized by Apple, this is expected). macOS will not ask again.
 
-L'icône apparaît dans la barre de menus (en haut à droite). Pas d'icône dans le
-Dock, c'est voulu.
+The icon appears in the menu bar (top right). No Dock icon, by design.
 
-## Compiler depuis la source
+## Build from source
 
-Besoin uniquement des Command Line Tools d'Apple (`xcode-select --install`),
-pas de Xcode complet.
+You only need Apple's Command Line Tools (`xcode-select --install`), not the
+full Xcode.
 
 ```sh
 git clone https://github.com/HugoThiphaine/audiopilote.git
@@ -52,31 +53,31 @@ cd audiopilote
 open ./AudioPilote.app
 ```
 
-`build.sh` compile en release, assemble le `.app` et le signe en ad-hoc pour un
-usage local.
+`build.sh` compiles in release mode, assembles the `.app` and ad-hoc signs it
+for local use.
 
-## Comment ça marche
+## How it works
 
-AudioPilote lit et écrit le périphérique par défaut via CoreAudio (HAL) et
-écoute les branchements/débranchements. L'ordre de priorité est mémorisé par
-UID (clé stable), donc il survit aux rebranchements. Avec l'auto-switch actif
-pour un mode, AudioPilote impose en continu le périphérique disponible le plus
-haut de la liste de ce mode.
+AudioPilote reads and writes the default device through CoreAudio (HAL) and
+listens for connections and disconnections. The priority order is stored by UID
+(a stable key), so it survives reconnections. With auto-switch enabled for a
+mode, AudioPilote continuously enforces the highest available device in that
+mode's list.
 
-Cible : macOS 13 ou plus récent.
+Target: macOS 13 or later.
 
-## Crédits
+## Credits
 
-Inspiré par [SoundAnchor](https://apps.kopiro.me/soundanchor) de Flavio De
-Stefano. AudioPilote en est une réécriture indépendante, à partir des seules API
-publiques d'Apple (CoreAudio, SwiftUI, ServiceManagement). Aucun code ni asset
-de SoundAnchor n'a été repris.
+Inspired by [SoundAnchor](https://apps.kopiro.me/soundanchor) by Flavio De
+Stefano. AudioPilote is an independent reimplementation, built only on Apple's
+public APIs (CoreAudio, SwiftUI, ServiceManagement). No code or asset from
+SoundAnchor was reused.
 
-## Auteur
+## Author
 
-Hugo Thiphaine, web designer et consultant SEO. Aide et contact :
+Hugo Thiphaine, web designer and SEO consultant. Help and contact:
 [hugo-thiphaine.fr](https://hugo-thiphaine.fr).
 
-## Licence
+## License
 
 [MIT](LICENSE)
