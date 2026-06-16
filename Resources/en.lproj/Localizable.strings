@@ -21,3 +21,5 @@
 
 "meter.start" = "Test this input's level";
 "meter.stop" = "Stop the level test";
+
+"row.movetotop" = "Move to top";

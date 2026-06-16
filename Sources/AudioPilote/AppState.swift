@@ -114,6 +114,14 @@ final class AppState: ObservableObject {
         refresh()
     }
 
+    /// Remonte un périphérique en tête de la priorité (bouton « remonter »).
+    /// Avec l'auto-switch actif, il devient aussitôt le périphérique par défaut.
+    func moveToTop(_ row: DeviceRow) {
+        promoteToTop(uid: row.uid, mode: row.mode)
+        applyAutoSwitch(mode: row.mode)
+        refresh()
+    }
+
     /// Remonte un périphérique en tête de la liste de priorité d'un mode.
     private func promoteToTop(uid: String, mode: AudioMode) {
         var rows = self.rows(for: mode)

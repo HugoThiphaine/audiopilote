@@ -1,12 +1,15 @@
 import SwiftUI
 
-/// Cellule d'un périphérique : pastille + nom + poignée de réordonnancement.
+/// Cellule d'un périphérique : pastille (clic = définir par défaut), nom,
+/// (entrée) bouton mètre, bouton « remonter en tête ».
 /// Grisé si hors-ligne, pastille accentuée + coche si c'est le défaut courant.
 struct DeviceRowView: View {
     let row: DeviceRow
     var isMetered: Bool = false
     var level: Float = 0
     var onToggleMeter: (() -> Void)? = nil
+    var onActivate: (() -> Void)? = nil
+    var onMoveToTop: (() -> Void)? = nil
 
     private var showMeterButton: Bool {
         row.mode == .input && row.isOnline && onToggleMeter != nil
@@ -14,13 +17,12 @@ struct DeviceRowView: View {
 
     var body: some View {
         HStack(spacing: 10) {
-            ZStack {
-                Circle()
-                    .fill(row.isDefault ? Color.accentColor : Color.secondary.opacity(0.18))
-                    .frame(width: 26, height: 26)
-                Image(systemName: row.isDefault ? "checkmark" : symbol)
-                    .font(.system(size: 11, weight: .semibold))
-                    .foregroundColor(row.isDefault ? .white : .secondary)
+            if let onActivate {
+                Button(action: onActivate) { pastille }
+                    .buttonStyle(.plain)
+                    .help(L("row.setdefault"))
+            } else {
+                pastille
             }
 
             Text(row.name)
@@ -47,9 +49,13 @@ struct DeviceRowView: View {
                 .help(isMetered ? L("meter.stop") : L("meter.start"))
             }
 
-            Image(systemName: "line.3.horizontal")
-                .font(.system(size: 12))
-                .foregroundColor(.secondary.opacity(0.5))
+            Button(action: { onMoveToTop?() }) {
+                Image(systemName: "arrow.up.to.line")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundColor(.secondary)
+            }
+            .buttonStyle(.plain)
+            .help(L("row.movetotop"))
         }
         .padding(.vertical, 5)
         .padding(.horizontal, 8)
@@ -58,7 +64,17 @@ struct DeviceRowView: View {
                 .fill(row.isDefault ? Color.accentColor.opacity(0.14) : Color.clear)
         )
         .opacity(row.isOnline ? 1 : 0.45)
-        .help(row.isOnline ? L("row.setdefault") : L("row.offline"))
+    }
+
+    private var pastille: some View {
+        ZStack {
+            Circle()
+                .fill(row.isDefault ? Color.accentColor : Color.secondary.opacity(0.18))
+                .frame(width: 26, height: 26)
+            Image(systemName: row.isDefault ? "checkmark" : symbol)
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundColor(row.isDefault ? .white : .secondary)
+        }
     }
 
     private var symbol: String {

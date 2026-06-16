@@ -96,6 +96,26 @@ final class AudioDeviceManager {
         return value
     }
 
+    // MARK: - Debug
+
+    /// Dump brut de TOUS les périphériques (sans filtre), pour diagnostic.
+    func debugRawDevices() -> [String] {
+        allDeviceIDs().map { id in
+            let n = name(of: id) ?? "(sans nom)"
+            let u = uid(of: id) ?? "(sans uid)"
+            let t = transportType(of: id).map(AudioDeviceManager.fourCC) ?? "????"
+            let inCh = channelCount(id, scope: kAudioObjectPropertyScopeInput)
+            let outCh = channelCount(id, scope: kAudioObjectPropertyScopeOutput)
+            return "[\(id)] transport=\(t) in=\(inCh) out=\(outCh) name=\(n) uid=\(u)"
+        }
+    }
+
+    private static func fourCC(_ value: UInt32) -> String {
+        let bytes = [UInt8((value >> 24) & 0xff), UInt8((value >> 16) & 0xff),
+                     UInt8((value >> 8) & 0xff), UInt8(value & 0xff)]
+        return String(bytes: bytes, encoding: .ascii) ?? "????"
+    }
+
     // MARK: - Périphérique par défaut
 
     func defaultDeviceID(for mode: AudioMode) -> AudioObjectID {

@@ -21,3 +21,5 @@
 
 "meter.start" = "Tester le niveau de cette entrée";
 "meter.stop" = "Arrêter le test du niveau";
+
+"row.movetotop" = "Remonter en tête";

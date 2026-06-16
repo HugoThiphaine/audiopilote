@@ -2,6 +2,13 @@ import AppKit
 
 // Chemin de debug : `AudioPilote --list` valide l'énumération CoreAudio sans
 // lancer l'interface (utile pour tester la couche HAL en ligne de commande).
+if CommandLine.arguments.contains("--list-raw") {
+    let manager = AudioDeviceManager()
+    print("== TOUS LES PÉRIPHÉRIQUES (brut, sans filtre) ==")
+    manager.debugRawDevices().forEach { print($0) }
+    exit(0)
+}
+
 if CommandLine.arguments.contains("--list") {
     let manager = AudioDeviceManager()
     for mode in AudioMode.allCases {

@@ -14,11 +14,9 @@ struct DeviceListView: View {
                               isMetered: state.meteredUID == row.uid,
                               level: state.inputLevel,
                               onToggleMeter: (mode == .input && row.isOnline)
-                                  ? { state.toggleMeter(row) } : nil)
-                    .contentShape(Rectangle())
-                    .onTapGesture {
-                        if row.isOnline { state.makeDefault(row) }
-                    }
+                                  ? { state.toggleMeter(row) } : nil,
+                              onActivate: row.isOnline ? { state.makeDefault(row) } : nil,
+                              onMoveToTop: { state.moveToTop(row) })
                     .listRowInsets(EdgeInsets(top: 1, leading: 6, bottom: 1, trailing: 6))
             }
             .onMove { indices, newOffset in
