@@ -8,8 +8,8 @@ DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 APP="${1:-$DIR/AudioPilote.app}"
 NAME="AudioPilote"
 BUNDLE_ID="fr.thiphaine.audiopilote"
-VERSION="0.2.1"
-BUILD="3"
+VERSION="0.2.2"
+BUILD="4"
 
 echo "==> swift build -c release"
 swift build --package-path "$DIR" -c release

@@ -4,6 +4,12 @@ All notable changes to AudioPilote.
 Format based on [Keep a Changelog](https://keepachangelog.com/),
 versioning follows [SemVer](https://semver.org/).
 
+## [0.2.2] - 2026-06-16
+
+### Added
+
+- English and French localization, following the macOS system language
+
 ## [0.2.1] - 2026-06-16
 
 ### Added
