@@ -44,7 +44,7 @@ struct DeviceRowView: View {
                         .foregroundColor(isMetered ? .accentColor : .secondary)
                 }
                 .buttonStyle(.plain)
-                .help(isMetered ? "Arrêter le test du niveau" : "Tester le niveau de cette entrée")
+                .help(isMetered ? L("meter.stop") : L("meter.start"))
             }
 
             Image(systemName: "line.3.horizontal")
@@ -58,7 +58,7 @@ struct DeviceRowView: View {
                 .fill(row.isDefault ? Color.accentColor.opacity(0.14) : Color.clear)
         )
         .opacity(row.isOnline ? 1 : 0.45)
-        .help(row.isOnline ? "Cliquer pour définir par défaut" : "Hors-ligne")
+        .help(row.isOnline ? L("row.setdefault") : L("row.offline"))
     }
 
     private var symbol: String {

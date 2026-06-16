@@ -1,0 +1,23 @@
+/* AudioPilote - English (default) */
+
+"tab.input" = "Input";
+"tab.output" = "Output";
+
+"mode.input" = "input";
+"mode.output" = "output";
+
+"autoswitch.on" = "Auto-switch on (%@)";
+"autoswitch.off" = "Auto-switch off (%@)";
+
+"login.toggle" = "Launch at login";
+"quit" = "Quit AudioPilote";
+"help.contact" = "Help and contact: hugo-thiphaine.fr";
+
+"volume" = "Volume";
+"volume.unsupported" = "Volume not adjustable for this device";
+
+"row.setdefault" = "Click to set as default";
+"row.offline" = "Offline";
+
+"meter.start" = "Test this input's level";
+"meter.stop" = "Stop the level test";

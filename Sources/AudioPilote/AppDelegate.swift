@@ -41,7 +41,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func showContextMenu() {
         if popover.isShown { popover.performClose(nil) }
         let menu = NSMenu()
-        let quit = NSMenuItem(title: "Quitter AudioPilote",
+        let quit = NSMenuItem(title: L("quit"),
                               action: #selector(quit), keyEquivalent: "q")
         quit.target = self
         menu.addItem(quit)

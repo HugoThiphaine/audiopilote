@@ -36,7 +36,7 @@ struct RootView: View {
             }
             .buttonStyle(.plain)
             .foregroundColor(.secondary)
-            .help("Aide et contact : hugo-thiphaine.fr")
+            .help(L("help.contact"))
             Button {
                 NSApp.terminate(nil)
             } label: {
@@ -44,7 +44,7 @@ struct RootView: View {
             }
             .buttonStyle(.plain)
             .foregroundColor(.secondary)
-            .help("Quitter AudioPilote")
+            .help(L("quit"))
         }
         .padding(.horizontal, 14)
         .padding(.top, 12)
@@ -53,8 +53,8 @@ struct RootView: View {
 
     private var modePicker: some View {
         Picker("", selection: $state.selectedMode) {
-            Label("Entrée", systemImage: "mic").tag(AudioMode.input)
-            Label("Sortie", systemImage: "speaker.wave.2").tag(AudioMode.output)
+            Label(L("tab.input"), systemImage: "mic").tag(AudioMode.input)
+            Label(L("tab.output"), systemImage: "speaker.wave.2").tag(AudioMode.output)
         }
         .pickerStyle(.segmented)
         .labelsHidden()
@@ -69,7 +69,7 @@ struct RootView: View {
                 .frame(width: 16)
             Slider(value: Binding(get: { state.volume }, set: { state.setVolume($0) }), in: 0...1)
                 .disabled(!state.volumeSupported)
-                .help(state.volumeSupported ? "Volume" : "Volume non réglable pour ce périphérique")
+                .help(state.volumeSupported ? L("volume") : L("volume.unsupported"))
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
@@ -88,10 +88,9 @@ struct RootView: View {
     }
 
     private var autoSwitchLabel: String {
-        let mode = state.selectedMode == .input ? "entrée" : "sortie"
-        return state.isAutoSwitch(state.selectedMode)
-            ? "Changement auto activé (\(mode))"
-            : "Changement auto désactivé (\(mode))"
+        let mode = state.selectedMode == .input ? L("mode.input") : L("mode.output")
+        let format = state.isAutoSwitch(state.selectedMode) ? L("autoswitch.on") : L("autoswitch.off")
+        return String(format: format, mode)
     }
 
     private var footer: some View {
@@ -112,7 +111,7 @@ struct RootView: View {
                 HStack(spacing: 6) {
                     Image(systemName: "power")
                         .foregroundColor(.secondary)
-                    Text("Lancer au démarrage").font(.system(size: 12))
+                    Text(L("login.toggle")).font(.system(size: 12))
                 }
             }
         }

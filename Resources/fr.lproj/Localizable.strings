@@ -1,0 +1,23 @@
+/* AudioPilote - Français */
+
+"tab.input" = "Entrée";
+"tab.output" = "Sortie";
+
+"mode.input" = "entrée";
+"mode.output" = "sortie";
+
+"autoswitch.on" = "Changement auto activé (%@)";
+"autoswitch.off" = "Changement auto désactivé (%@)";
+
+"login.toggle" = "Lancer au démarrage";
+"quit" = "Quitter AudioPilote";
+"help.contact" = "Aide et contact : hugo-thiphaine.fr";
+
+"volume" = "Volume";
+"volume.unsupported" = "Volume non réglable pour ce périphérique";
+
+"row.setdefault" = "Cliquer pour définir par défaut";
+"row.offline" = "Hors-ligne";
+
+"meter.start" = "Tester le niveau de cette entrée";
+"meter.stop" = "Arrêter le test du niveau";
