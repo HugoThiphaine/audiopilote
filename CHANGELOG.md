@@ -4,6 +4,12 @@ All notable changes to AudioPilote.
 Format based on [Keep a Changelog](https://keepachangelog.com/),
 versioning follows [SemVer](https://semver.org/).
 
+## [0.3.1] - 2026-06-16
+
+### Changed
+
+- Clearer automatic-switching control: a title, a short menu (Off / Fallback / Top priority) and a one-line description of the selected mode. Fixes a cramped display.
+
 ## [0.3.0] - 2026-06-16
 
 ### Added
