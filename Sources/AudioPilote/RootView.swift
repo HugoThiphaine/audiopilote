@@ -121,19 +121,25 @@ struct RootView: View {
 
     private var footer: some View {
         VStack(alignment: .leading, spacing: 10) {
-            HStack(spacing: 6) {
-                Image(systemName: autoIcon).foregroundColor(autoIconColor)
-                Text(autoLabel).font(.system(size: 12))
-                Spacer()
-                Picker("", selection: Binding(get: { state.autoMode(for: state.selectedMode) },
-                                              set: { state.setAutoMode($0, for: state.selectedMode) })) {
-                    Text(L("auto.off")).tag(AutoSwitchMode.off)
-                    Text(L("auto.fallback")).tag(AutoSwitchMode.fallback)
-                    Text(L("auto.forcetop")).tag(AutoSwitchMode.forceTop)
+            VStack(alignment: .leading, spacing: 3) {
+                HStack(spacing: 6) {
+                    Image(systemName: autoIcon).foregroundColor(autoIconColor)
+                    Text(L("auto.title")).font(.system(size: 12, weight: .medium))
+                    Spacer(minLength: 8)
+                    Picker("", selection: Binding(get: { state.autoMode(for: state.selectedMode) },
+                                                  set: { state.setAutoMode($0, for: state.selectedMode) })) {
+                        Text(L("auto.off")).tag(AutoSwitchMode.off)
+                        Text(L("auto.fallback")).tag(AutoSwitchMode.fallback)
+                        Text(L("auto.forcetop")).tag(AutoSwitchMode.forceTop)
+                    }
+                    .pickerStyle(.menu)
+                    .labelsHidden()
+                    .fixedSize()
                 }
-                .pickerStyle(.menu)
-                .labelsHidden()
-                .fixedSize()
+                Text(autoDescription)
+                    .font(.system(size: 11))
+                    .foregroundColor(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
             }
 
             Toggle(isOn: Binding(get: { state.loginEnabled }, set: { state.setLogin($0) })) {
@@ -161,9 +167,12 @@ struct RootView: View {
         !Bundle.main.bundlePath.contains("/Applications/")
     }
 
-    private var autoLabel: String {
-        let mode = state.selectedMode == .input ? L("mode.input") : L("mode.output")
-        return String(format: L("auto.label"), mode)
+    private var autoDescription: String {
+        switch state.autoMode(for: state.selectedMode) {
+        case .off: return L("auto.off.desc")
+        case .fallback: return L("auto.fallback.desc")
+        case .forceTop: return L("auto.forcetop.desc")
+        }
     }
 
     private var autoIcon: String {

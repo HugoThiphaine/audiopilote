@@ -27,7 +27,10 @@
 "row.restore" = "Restore";
 "ignored.count" = "%d ignored";
 
-"auto.label" = "Auto-switch (%@)";
+"auto.title" = "Automatic switching";
 "auto.off" = "Off";
-"auto.fallback" = "Fallback only";
-"auto.forcetop" = "Always top priority";
+"auto.fallback" = "Fallback";
+"auto.forcetop" = "Top priority";
+"auto.off.desc" = "No automatic switching.";
+"auto.fallback.desc" = "Switches only when the active device disconnects.";
+"auto.forcetop.desc" = "Always keeps the highest-priority available device.";

@@ -27,7 +27,10 @@
 "row.restore" = "Restaurer";
 "ignored.count" = "%d ignoré(s)";
 
-"auto.label" = "Changement auto (%@)";
+"auto.title" = "Changement automatique";
 "auto.off" = "Désactivé";
-"auto.fallback" = "Repli seulement";
-"auto.forcetop" = "Toujours le plus prioritaire";
+"auto.fallback" = "Repli";
+"auto.forcetop" = "Prioritaire";
+"auto.off.desc" = "Aucune bascule automatique.";
+"auto.fallback.desc" = "Bascule seulement si le périphérique actif se déconnecte.";
+"auto.forcetop.desc" = "Garde toujours le périphérique disponible le plus prioritaire.";
