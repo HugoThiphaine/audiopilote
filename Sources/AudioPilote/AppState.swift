@@ -4,15 +4,17 @@ import Foundation
 
 /// État observable central de l'app.
 /// Fusionne l'ordre de priorité persistant (UID) avec l'état live des
-/// périphériques (online/offline), applique l'auto-switch de façon idempotente.
+/// périphériques (online/offline) et applique la bascule automatique.
 /// Toutes les mutations se font sur le main thread (l'UI et le listener
 /// CoreAudio, qui hop sur le main, sont les seuls appelants).
 final class AppState: ObservableObject {
 
     @Published var inputRows: [DeviceRow] = []
     @Published var outputRows: [DeviceRow] = []
-    @Published var autoSwitchInput: Bool
-    @Published var autoSwitchOutput: Bool
+    @Published var ignoredInput: [DeviceRow] = []
+    @Published var ignoredOutput: [DeviceRow] = []
+    @Published var autoModeInput: AutoSwitchMode
+    @Published var autoModeOutput: AutoSwitchMode
     @Published var loginEnabled: Bool
     @Published var selectedMode: AudioMode = .output {
         didSet {
@@ -30,10 +32,12 @@ final class AppState: ObservableObject {
     private let loginItem = LoginItemManager()
     private let meter = AudioLevelMeter()
     private var popoverVisible = false
+    /// Périphérique que l'app considère actif (managé) par mode, pour le repli.
+    private var activeUID: [AudioMode: String] = [:]
 
     init() {
-        autoSwitchInput = store.autoSwitchEnabled(for: .input)
-        autoSwitchOutput = store.autoSwitchEnabled(for: .output)
+        autoModeInput = store.autoMode(for: .input)
+        autoModeOutput = store.autoMode(for: .output)
         loginEnabled = loginItem.isEnabled
         refresh()
         manager.startListening { [weak self] in self?.handleChange() }
@@ -42,6 +46,10 @@ final class AppState: ObservableObject {
 
     func rows(for mode: AudioMode) -> [DeviceRow] {
         mode == .input ? inputRows : outputRows
+    }
+
+    func ignoredRows(for mode: AudioMode) -> [DeviceRow] {
+        mode == .input ? ignoredInput : ignoredOutput
     }
 
     // MARK: - Synchronisation de l'état
@@ -63,8 +71,9 @@ final class AppState: ObservableObject {
             }
             store.savePriority(order, for: mode)
 
+            let ignored = store.ignoredUIDs(for: mode)
             let defaultID = manager.defaultDeviceID(for: mode)
-            let rows = order.map { uid -> DeviceRow in
+            let allRows = order.map { uid -> DeviceRow in
                 let device = liveByUID[uid]
                 let isDefault = device?.objectID != nil && device?.objectID == defaultID
                 return DeviceRow(uid: uid,
@@ -74,7 +83,10 @@ final class AppState: ObservableObject {
                                  objectID: device?.objectID,
                                  mode: mode)
             }
-            if mode == .input { inputRows = rows } else { outputRows = rows }
+            let main = allRows.filter { !ignored.contains($0.uid) }
+            let ign = allRows.filter { ignored.contains($0.uid) }
+            if mode == .input { inputRows = main; ignoredInput = ign }
+            else { outputRows = main; ignoredOutput = ign }
         }
         if let uid = meteredUID, inputRows.first(where: { $0.uid == uid })?.isOnline != true {
             meteredUID = nil
@@ -98,38 +110,37 @@ final class AppState: ObservableObject {
 
     // MARK: - Actions UI
 
-    /// Bascule manuelle au clic.
-    /// - auto-switch OFF : définit ce périphérique comme défaut immédiatement.
-    /// - auto-switch ON : le promeut en tête de priorité, sinon l'auto-switch
-    ///   reviendrait aussitôt sur le périphérique le plus prioritaire et
-    ///   annulerait la sélection. Une fois en tête, l'auto-switch l'adopte.
+    /// Bascule manuelle au clic sur la pastille.
+    /// - forceTop : promeut en tête (sinon l'auto reviendrait sur le top).
+    /// - off / fallback : définit ce périphérique comme défaut et actif.
     func makeDefault(_ row: DeviceRow) {
         guard let id = row.objectID else { return }
-        if isAutoSwitch(row.mode) {
+        switch autoMode(for: row.mode) {
+        case .forceTop:
             promoteToTop(uid: row.uid, mode: row.mode)
             applyAutoSwitch(mode: row.mode)
-        } else {
+        case .off, .fallback:
             manager.setDefault(id, for: row.mode)
+            activeUID[row.mode] = row.uid
         }
         refresh()
     }
 
     /// Remonte un périphérique en tête de la priorité (bouton « remonter »).
-    /// Avec l'auto-switch actif, il devient aussitôt le périphérique par défaut.
     func moveToTop(_ row: DeviceRow) {
         promoteToTop(uid: row.uid, mode: row.mode)
         applyAutoSwitch(mode: row.mode)
         refresh()
     }
 
-    /// Remonte un périphérique en tête de la liste de priorité d'un mode.
+    /// Remonte un UID en tête de la liste active et persiste (ignorés conservés).
     private func promoteToTop(uid: String, mode: AudioMode) {
         var rows = self.rows(for: mode)
         guard let index = rows.firstIndex(where: { $0.uid == uid }) else { return }
         let row = rows.remove(at: index)
         rows.insert(row, at: 0)
         if mode == .input { inputRows = rows } else { outputRows = rows }
-        store.savePriority(rows.map { $0.uid }, for: mode)
+        persistOrder(mainRows: rows, mode: mode)
     }
 
     /// Réordonne (= change la priorité) et persiste.
@@ -137,19 +148,50 @@ final class AppState: ObservableObject {
         var rows = self.rows(for: mode)
         rows.move(fromOffsets: from, toOffset: to)
         if mode == .input { inputRows = rows } else { outputRows = rows }
-        store.savePriority(rows.map { $0.uid }, for: mode)
+        persistOrder(mainRows: rows, mode: mode)
         applyAutoSwitch(mode: mode)
     }
 
-    func isAutoSwitch(_ mode: AudioMode) -> Bool {
-        mode == .input ? autoSwitchInput : autoSwitchOutput
+    /// Sauvegarde l'ordre = UID actifs puis UID ignorés (pour ne pas les perdre).
+    private func persistOrder(mainRows: [DeviceRow], mode: AudioMode) {
+        let mainUIDs = mainRows.map { $0.uid }
+        let ignoredUIDs = ignoredRows(for: mode).map { $0.uid }.filter { !mainUIDs.contains($0) }
+        store.savePriority(mainUIDs + ignoredUIDs, for: mode)
     }
 
-    func setAutoSwitch(_ enabled: Bool, for mode: AudioMode) {
-        if mode == .input { autoSwitchInput = enabled } else { autoSwitchOutput = enabled }
-        store.setAutoSwitchEnabled(enabled, for: mode)
+    // MARK: - Mode de bascule auto
+
+    func autoMode(for mode: AudioMode) -> AutoSwitchMode {
+        mode == .input ? autoModeInput : autoModeOutput
+    }
+
+    func setAutoMode(_ value: AutoSwitchMode, for mode: AudioMode) {
+        if mode == .input { autoModeInput = value } else { autoModeOutput = value }
+        store.setAutoMode(value, for: mode)
+        activeUID[mode] = nil   // repart de l'état courant (pas de vol immédiat en repli)
         applyAutoSwitch(mode: mode)
     }
+
+    // MARK: - Ignorer / restaurer
+
+    func ignore(_ row: DeviceRow) {
+        var set = store.ignoredUIDs(for: row.mode)
+        set.insert(row.uid)
+        store.setIgnoredUIDs(set, for: row.mode)
+        if activeUID[row.mode] == row.uid { activeUID[row.mode] = nil }
+        refresh()
+        applyAutoSwitch(mode: row.mode)
+    }
+
+    func unignore(_ row: DeviceRow) {
+        var set = store.ignoredUIDs(for: row.mode)
+        set.remove(row.uid)
+        store.setIgnoredUIDs(set, for: row.mode)
+        refresh()
+        applyAutoSwitch(mode: row.mode)
+    }
+
+    // MARK: - Login
 
     func setLogin(_ enabled: Bool) {
         loginItem.setEnabled(enabled)
@@ -188,7 +230,6 @@ final class AppState: ObservableObject {
         updateMeter()
     }
 
-    /// Démarre/arrête le test de niveau d'une entrée (déclenché par le bouton).
     func toggleMeter(_ row: DeviceRow) {
         meteredUID = (meteredUID == row.uid) ? nil : row.uid
         updateMeter()
@@ -208,19 +249,58 @@ final class AppState: ObservableObject {
         meter.start(deviceID: deviceID) { [weak self] level in self?.inputLevel = level }
     }
 
-    // MARK: - Auto-switch (idempotent)
+    // MARK: - Bascule automatique
 
-    /// Force, pour chaque mode concerné, le périphérique disponible le plus haut
-    /// dans la liste de priorité. N'écrit que si le défaut courant diffère de la
-    /// cible : évite la boucle de feedback avec le listener.
+    /// Applique la bascule pour les modes concernés selon leur AutoSwitchMode.
+    /// `forceTop` impose en continu le plus prioritaire ; `fallback` ne bascule
+    /// que si l'actif a disparu, sans voler le focus à un device qui (re)connecte.
     private func applyAutoSwitch(mode: AudioMode? = nil) {
         let modes = mode.map { [$0] } ?? AudioMode.allCases
         var changed = false
-        for m in modes where isAutoSwitch(m) {
-            guard let target = rows(for: m).first(where: { $0.isOnline })?.objectID else { continue }
-            if manager.defaultDeviceID(for: m) != target {
-                manager.setDefault(target, for: m)
-                changed = true
+        for m in modes {
+            let auto = autoMode(for: m)
+            guard auto != .off else { continue }
+            let rows = self.rows(for: m)
+            guard let topOnline = rows.first(where: { $0.isOnline }),
+                  let topID = topOnline.objectID else { continue }
+            let sysDefault = manager.defaultDeviceID(for: m)
+
+            switch auto {
+            case .off:
+                break
+            case .forceTop:
+                if sysDefault != topID {
+                    manager.setDefault(topID, for: m)
+                    changed = true
+                }
+                activeUID[m] = topOnline.uid
+            case .fallback:
+                let activeOnline = activeUID[m].flatMap { uid in
+                    rows.first(where: { $0.uid == uid && $0.isOnline })
+                }
+                if let activeOnline {
+                    // L'actif est toujours là : on respecte, on adopte un éventuel
+                    // changement manuel vers un autre périphérique en ligne.
+                    if let sysRow = rows.first(where: { $0.objectID == sysDefault && $0.isOnline }),
+                       sysRow.uid != activeOnline.uid {
+                        activeUID[m] = sysRow.uid
+                    }
+                } else if activeUID[m] == nil {
+                    // Première fois : adopter le défaut courant s'il est des nôtres,
+                    // sinon se poser sur le plus prioritaire disponible.
+                    if let sysRow = rows.first(where: { $0.objectID == sysDefault && $0.isOnline }) {
+                        activeUID[m] = sysRow.uid
+                    } else {
+                        manager.setDefault(topID, for: m)
+                        activeUID[m] = topOnline.uid
+                        changed = true
+                    }
+                } else {
+                    // L'actif s'est déconnecté : repli sur le plus prioritaire dispo.
+                    manager.setDefault(topID, for: m)
+                    activeUID[m] = topOnline.uid
+                    changed = true
+                }
             }
         }
         if changed { refresh() }

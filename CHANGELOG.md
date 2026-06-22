@@ -4,6 +4,13 @@ All notable changes to AudioPilote.
 Format based on [Keep a Changelog](https://keepachangelog.com/),
 versioning follows [SemVer](https://semver.org/).
 
+## [0.3.0] - 2026-06-16
+
+### Added
+
+- Ignore a device: hide it from the list (hover the row, click the eye icon). Ignored devices appear in a collapsible section and can be restored.
+- Auto-switch now has three modes, independent per input and output: Off, Fallback only (switch only when the active device disconnects, without stealing focus), and Always top priority (the previous behavior).
+
 ## [0.2.3] - 2026-06-16
 
 ### Added

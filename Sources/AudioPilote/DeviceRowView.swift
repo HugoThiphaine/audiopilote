@@ -10,6 +10,7 @@ struct DeviceRowView: View {
     var onToggleMeter: (() -> Void)? = nil
     var onActivate: (() -> Void)? = nil
     var onMoveToTop: (() -> Void)? = nil
+    var onIgnore: (() -> Void)? = nil
 
     @State private var isHovering = false
 
@@ -64,6 +65,19 @@ struct DeviceRowView: View {
             .opacity(isHovering ? 1 : 0)
             .allowsHitTesting(isHovering)
             .animation(.easeInOut(duration: 0.12), value: isHovering)
+
+            if let onIgnore {
+                Button(action: onIgnore) {
+                    Image(systemName: "eye.slash")
+                        .font(.system(size: 12))
+                        .foregroundColor(.secondary)
+                }
+                .buttonStyle(.plain)
+                .help(L("row.ignore"))
+                .opacity(isHovering ? 1 : 0)
+                .allowsHitTesting(isHovering)
+                .animation(.easeInOut(duration: 0.12), value: isHovering)
+            }
         }
         .padding(.vertical, 5)
         .padding(.horizontal, 8)

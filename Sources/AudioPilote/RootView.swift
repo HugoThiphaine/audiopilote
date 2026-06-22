@@ -1,9 +1,10 @@
 import SwiftUI
 
-/// Contenu du popover : en-tête, sélecteur Entrée/Sortie, liste, pied avec les
-/// deux toggles (auto-switch + lancement au login).
+/// Contenu du popover : en-tête, sélecteur Entrée/Sortie, contrôle de volume,
+/// liste réordonnable, section des ignorés, pied (mode auto + lancement login).
 struct RootView: View {
     @EnvironmentObject var state: AppState
+    @State private var ignoredExpanded = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -12,6 +13,7 @@ struct RootView: View {
             controls
             DeviceListView(mode: state.selectedMode)
                 .frame(minHeight: 180, maxHeight: 360)
+            ignoredSection
             footer
         }
         .frame(width: 320)
@@ -83,40 +85,67 @@ struct RootView: View {
         .padding(.bottom, 8)
     }
 
-    private var isDevBuild: Bool {
-        !Bundle.main.bundlePath.contains("/Applications/")
-    }
-
-    private var autoSwitchLabel: String {
-        let mode = state.selectedMode == .input ? L("mode.input") : L("mode.output")
-        let format = state.isAutoSwitch(state.selectedMode) ? L("autoswitch.on") : L("autoswitch.off")
-        return String(format: format, mode)
+    @ViewBuilder
+    private var ignoredSection: some View {
+        let rows = state.ignoredRows(for: state.selectedMode)
+        if !rows.isEmpty {
+            DisclosureGroup(isExpanded: $ignoredExpanded) {
+                ForEach(rows) { row in
+                    HStack(spacing: 8) {
+                        Image(systemName: "eye.slash")
+                            .font(.system(size: 11))
+                            .foregroundColor(.secondary)
+                        Text(row.name)
+                            .font(.system(size: 12))
+                            .foregroundColor(.secondary)
+                            .lineLimit(1)
+                        Spacer()
+                        Button { state.unignore(row) } label: {
+                            Image(systemName: "arrow.uturn.backward").font(.system(size: 11))
+                        }
+                        .buttonStyle(.plain)
+                        .foregroundColor(.secondary)
+                        .help(L("row.restore"))
+                    }
+                    .padding(.vertical, 2)
+                }
+            } label: {
+                Text(String(format: L("ignored.count"), rows.count))
+                    .font(.system(size: 11))
+                    .foregroundColor(.secondary)
+            }
+            .padding(.horizontal, 16)
+            .padding(.bottom, 6)
+        }
     }
 
     private var footer: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Toggle(isOn: Binding(get: { state.isAutoSwitch(state.selectedMode) },
-                                 set: { state.setAutoSwitch($0, for: state.selectedMode) })) {
-                HStack(spacing: 6) {
-                    Image(systemName: state.isAutoSwitch(state.selectedMode)
-                          ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
-                        .foregroundColor(state.isAutoSwitch(state.selectedMode) ? .green : .orange)
-                    Text(autoSwitchLabel)
-                        .font(.system(size: 12))
+            HStack(spacing: 6) {
+                Image(systemName: autoIcon).foregroundColor(autoIconColor)
+                Text(autoLabel).font(.system(size: 12))
+                Spacer()
+                Picker("", selection: Binding(get: { state.autoMode(for: state.selectedMode) },
+                                              set: { state.setAutoMode($0, for: state.selectedMode) })) {
+                    Text(L("auto.off")).tag(AutoSwitchMode.off)
+                    Text(L("auto.fallback")).tag(AutoSwitchMode.fallback)
+                    Text(L("auto.forcetop")).tag(AutoSwitchMode.forceTop)
                 }
+                .pickerStyle(.menu)
+                .labelsHidden()
+                .fixedSize()
             }
 
-            Toggle(isOn: Binding(get: { state.loginEnabled },
-                                 set: { state.setLogin($0) })) {
+            Toggle(isOn: Binding(get: { state.loginEnabled }, set: { state.setLogin($0) })) {
                 HStack(spacing: 6) {
                     Image(systemName: "power")
                         .foregroundColor(.secondary)
                     Text(L("login.toggle")).font(.system(size: 12))
                 }
             }
+            .toggleStyle(.switch)
+            .controlSize(.small)
         }
-        .toggleStyle(.switch)
-        .controlSize(.small)
         .padding(.horizontal, 12)
         .padding(.vertical, 10)
         .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
@@ -126,5 +155,30 @@ struct RootView: View {
         )
         .padding(.horizontal, 12)
         .padding(.bottom, 12)
+    }
+
+    private var isDevBuild: Bool {
+        !Bundle.main.bundlePath.contains("/Applications/")
+    }
+
+    private var autoLabel: String {
+        let mode = state.selectedMode == .input ? L("mode.input") : L("mode.output")
+        return String(format: L("auto.label"), mode)
+    }
+
+    private var autoIcon: String {
+        switch state.autoMode(for: state.selectedMode) {
+        case .off: return "exclamationmark.triangle.fill"
+        case .fallback: return "arrow.uturn.down.circle.fill"
+        case .forceTop: return "checkmark.circle.fill"
+        }
+    }
+
+    private var autoIconColor: Color {
+        switch state.autoMode(for: state.selectedMode) {
+        case .off: return .orange
+        case .fallback: return .blue
+        case .forceTop: return .green
+        }
     }
 }

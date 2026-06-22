@@ -23,3 +23,11 @@
 "meter.stop" = "Arrêter le test du niveau";
 
 "row.movetotop" = "Remonter en tête";
+"row.ignore" = "Ignorer ce périphérique";
+"row.restore" = "Restaurer";
+"ignored.count" = "%d ignoré(s)";
+
+"auto.label" = "Changement auto (%@)";
+"auto.off" = "Désactivé";
+"auto.fallback" = "Repli seulement";
+"auto.forcetop" = "Toujours le plus prioritaire";

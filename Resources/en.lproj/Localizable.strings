@@ -23,3 +23,11 @@
 "meter.stop" = "Stop the level test";
 
 "row.movetotop" = "Move to top";
+"row.ignore" = "Ignore this device";
+"row.restore" = "Restore";
+"ignored.count" = "%d ignored";
+
+"auto.label" = "Auto-switch (%@)";
+"auto.off" = "Off";
+"auto.fallback" = "Fallback only";
+"auto.forcetop" = "Always top priority";

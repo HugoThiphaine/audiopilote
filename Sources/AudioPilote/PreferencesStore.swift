@@ -37,13 +37,29 @@ final class PreferencesStore {
 
     func rememberedName(for uid: String) -> String? { names[uid] }
 
-    // MARK: - Auto-switch (par mode)
+    // MARK: - Mode de bascule auto (par mode audio)
 
-    func autoSwitchEnabled(for mode: AudioMode) -> Bool {
-        defaults.bool(forKey: "autoSwitch.\(mode.rawValue)")
+    func autoMode(for mode: AudioMode) -> AutoSwitchMode {
+        if let raw = defaults.string(forKey: "autoMode.\(mode.rawValue)"),
+           let value = AutoSwitchMode(rawValue: raw) {
+            return value
+        }
+        // Migration de l'ancien réglage booléen (true = forcer le plus prioritaire).
+        if defaults.bool(forKey: "autoSwitch.\(mode.rawValue)") { return .forceTop }
+        return .off
     }
 
-    func setAutoSwitchEnabled(_ enabled: Bool, for mode: AudioMode) {
-        defaults.set(enabled, forKey: "autoSwitch.\(mode.rawValue)")
+    func setAutoMode(_ value: AutoSwitchMode, for mode: AudioMode) {
+        defaults.set(value.rawValue, forKey: "autoMode.\(mode.rawValue)")
+    }
+
+    // MARK: - Périphériques ignorés (par mode)
+
+    func ignoredUIDs(for mode: AudioMode) -> Set<String> {
+        Set(defaults.stringArray(forKey: "ignored.\(mode.rawValue)") ?? [])
+    }
+
+    func setIgnoredUIDs(_ uids: Set<String>, for mode: AudioMode) {
+        defaults.set(Array(uids), forKey: "ignored.\(mode.rawValue)")
     }
 }

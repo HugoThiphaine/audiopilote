@@ -17,6 +17,13 @@ enum AudioMode: String, Codable, CaseIterable {
     }
 }
 
+/// Comportement de la bascule automatique, indépendant pour chaque mode.
+enum AutoSwitchMode: String, Codable, CaseIterable {
+    case off        // ne rien faire automatiquement
+    case fallback   // basculer seulement si l'actif se déconnecte (sans voler le focus)
+    case forceTop   // imposer en continu le plus prioritaire disponible
+}
+
 /// Périphérique audio tel que retourné par CoreAudio à un instant T.
 /// `uid` est la clé stable de persistance ; `objectID` est volatile (recalculé
 /// à chaque énumération, change après un rebranchement).

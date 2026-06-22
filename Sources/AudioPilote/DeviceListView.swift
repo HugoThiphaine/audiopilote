@@ -16,7 +16,8 @@ struct DeviceListView: View {
                               onToggleMeter: (mode == .input && row.isOnline)
                                   ? { state.toggleMeter(row) } : nil,
                               onActivate: row.isOnline ? { state.makeDefault(row) } : nil,
-                              onMoveToTop: { state.moveToTop(row) })
+                              onMoveToTop: { state.moveToTop(row) },
+                              onIgnore: { state.ignore(row) })
                     .listRowInsets(EdgeInsets(top: 1, leading: 6, bottom: 1, trailing: 6))
             }
             .onMove { indices, newOffset in
